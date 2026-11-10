@@ -151,6 +151,7 @@ input:focus{border-color:var(--accent)}
 .biguno{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);text-align:center;font-style:italic;font-weight:900;line-height:1;white-space:nowrap}
 .biguno .w{display:block;font-size:clamp(90px,26vw,260px);letter-spacing:.03em;-webkit-text-stroke:6px #fff;paint-order:stroke fill;text-shadow:0 10px 40px rgba(0,0,0,.6)}
 .biguno .w span:nth-child(1){color:var(--r)}.biguno .w span:nth-child(2){color:var(--y)}.biguno .w span:nth-child(3){color:var(--g)}.biguno .w span:nth-child(4){color:var(--b)}
+.biguno .w.f{font-size:clamp(60px,15vw,160px);color:#fff;-webkit-text-stroke:0;text-shadow:0 6px 0 var(--r),0 12px 40px rgba(0,0,0,.6)}
 .biguno .who{display:inline-block;margin-top:10px;background:rgba(10,18,36,.82);border:1px solid var(--line);border-radius:999px;padding:8px 20px;font-size:18px;font-style:normal}
 @media (max-width:640px){ .bigplay{--cw:96px;--ch:144px} }
 @media (max-height:760px){
@@ -283,6 +284,24 @@ function startRound(){
   G.turn=rand(G.players.length); G.dir=1; G.drawn=null; G.pending=0; G.winner=null; G.phase='playing';
   G.log=[]; addLog('ゲーム開始！ '+G.players[G.turn].name+' から');
 }
+// UNO forgotten: the 2nd time onward gets the 忘れん坊 treatment
+function forgetFx(t,skipped){
+  t.forgot=(t.forgot||0)+1;
+  if(t.forgot>=2){ addLog('😡🫵 '+t.name+'「忘れん坊！」（'+t.forgot+'回目）'); setFx(t.pid,'忘れん坊！😡🫵 +2','forgot',2); }
+  else setFx(t.pid,skipped?'言い忘れ！ +2＆スキップ':'言い忘れ！ +2','draw',2);
+}
+// nobody called it out: when the turn comes back to a player still on 1 card without UNO, they auto-draw 2 and lose the turn
+function autoPenalty(){
+  for(let i=0;i<G.players.length;i++){
+    if(G.phase!=='playing' || G.drawn!=null) return;
+    const t=G.players[G.turn];
+    if(t.hand.length!==1 || t.calledUno) return;
+    drawCards(t,G.pending>0 ? G.pending+2 : 2); G.pending=0;
+    addLog('⏭ '+t.name+' はUNOを言い忘れたまま番が来たので2枚引いてスキップ');
+    forgetFx(t,true);
+    G.turn=nextIdx(1);
+  }
+}
 function handleAction(pid,a){
   const p=G.players.find(x=>x.pid===pid); if(!p||!a) return;
   const n=G.players.length;
@@ -349,13 +368,14 @@ function handleAction(pid,a){
       if(G.phase!=='playing') return;
       const t=G.players.find(x=>x.pid===a.target);
       if(!t || t===p || t.hand.length!==1 || t.calledUno) return;
-      drawCards(t,2); addLog('👉 '+p.name+' が指摘！ '+t.name+' はUNOを言い忘れて2枚引いた'); setFx(t.pid,'言い忘れ！ +2','draw',2);
+      drawCards(t,2); addLog('👉 '+p.name+' が指摘！ '+t.name+' はUNOを言い忘れて2枚引いた'); forgetFx(t,false);
       break;
     }
     case 'emote':
       if(!EMOTES.includes(a.e)) return;
       setFx(pid,a.e,'emote'); break;
   }
+  if(a.type==='play' || a.type==='draw' || a.type==='pass') autoPenalty();
 }
 function viewFor(pid){
   const me=G.players.find(p=>p.pid===pid);
@@ -651,7 +671,7 @@ function animateFx(fx){
     const d=$('.discard .card'); if(!d) return;
     const r=d.getBoundingClientRect();
     d.animate([{transform:`translate(${sx-r.left-r.width/2}px,${sy-r.top-r.height/2}px) scale(.5) rotate(-25deg)`,opacity:.5},{transform:'none',opacity:1}],{duration:380,easing:'cubic-bezier(.2,.8,.3,1)'});
-  }else if(fx.kind==='draw'){
+  }else if(fx.kind==='draw' || fx.kind==='forgot'){
     const d=$('.deck'); if(!d) return;
     const r=d.getBoundingClientRect(), k=Math.min(fx.n||1,5);
     for(let i=0;i<k;i++){
@@ -706,11 +726,13 @@ function bigPlay(fx){
   const a=el.querySelector('.bp-cap').animate([{opacity:0},{opacity:1,offset:.2},{opacity:1,offset:.84},{opacity:0}],{duration:D,fill:'both'});
   a.onfinish=a.oncancel=()=>el.remove();
 }
-function bigUno(fx){
+function bigUno(fx){ bigBanner('<span class="w"><span>U</span><span>N</span><span>O</span><span>!</span></span><span class="who">'+esc(nameOf(fx.pid))+' がUNO！</span>'); }
+function bigForgot(fx){ bigBanner('<span class="w f">忘れん坊！</span><span class="w f">😡🫵</span><span class="who">'+esc(nameOf(fx.pid))+' +2枚</span>'); }
+function bigBanner(html){
   const st=$('#stage'); if(!st||!st.animate) return;
   st.querySelectorAll('.biguno').forEach(e=>e.remove());
   const el=document.createElement('div'); el.className='biguno';
-  el.innerHTML='<span class="w"><span>U</span><span>N</span><span>O</span><span>!</span></span><span class="who">'+esc(nameOf(fx.pid))+' がUNO！</span>';
+  el.innerHTML=html;
   st.appendChild(el);
   const a=el.animate([
     {transform:'translate(-50%,-50%) scale(3.2) rotate(-8deg)',opacity:0},
@@ -727,6 +749,7 @@ function playFx(fx){
   if(fx.kind==='emote') floatEmote(fx);
   else if(fx.kind==='play') bigPlay(fx);
   else if(fx.kind==='say' && fx.text==='UNO！') bigUno(fx);
+  else if(fx.kind==='forgot') bigForgot(fx);
 }
 function render(){
   if(ui.screen==='home') renderHome();
