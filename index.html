@@ -328,7 +328,10 @@ function handleAction(pid,a){
       G.color = last.c==='w' ? a.color : last.c; G.drawn=null;
       if(p.hand.length!==1) p.calledUno=false;
       addLog(p.name+' が '+cardName(last)+' を'+(k>1?k+'枚':'')+'出した'+(last.c==='w' ? '（'+COLOR_NAME[G.color]+'を指定）' : ''));
-      setFx(pid,cardName(last)+(k>1?' ×'+k:''),'play',k,{cards:cards.map(c=>({c:c.c,v:c.v})),col:G.color});
+      // with "no going out on a symbol card", being left with only a symbol card is a dead end: draw 2 automatically
+      const stuck = G.rules.noSymbolEnd && p.hand.length===1 && !isNum(p.hand[0]);
+      if(stuck){ drawCards(p,2); addLog('🃏 '+p.name+' は記号カードだけ残ったので2枚引いた'); }
+      setFx(pid,cardName(last)+(k>1?' ×'+k:'')+(stuck?'　記号だけ残って+2':''),'play',k,{cards:cards.map(c=>({c:c.c,v:c.v})),col:G.color});
       if(!p.hand.length){ G.phase='ended'; G.winner=pid; p.wins++; addLog('🎉 '+p.name+' の勝ち！'); break; }
       let steps=1;
       if(first.v==='skip'){ steps=n===2?2:1+k; addLog(k>1 ? k+'人分スキップ' : G.players[nextIdx(1)].name+' はスキップ'); }
