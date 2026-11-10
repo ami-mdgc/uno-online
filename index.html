@@ -198,8 +198,9 @@ let peer = null, hostConn = null, code = null;
 let G = null;               // host only: authoritative game state
 const conns = new Map();    // host only: pid -> connection
 let view = null;            // what this player sees
-const ui = { screen:'home', error:'', picking:null, sel:[], bubble:null, reconnecting:false };
-let autoT, retryT, bubT, lastFx, wasMine = false, everConnected = false;
+const bubTs = {};
+const ui = { screen:'home', error:'', picking:null, sel:[], bubbles:{}, reconnecting:false };
+let autoT, retryT, lastFx, wasMine = false, everConnected = false;
 
 /* ================= game rules (shared) ================= */
 const isNum = c => /^\d$/.test(c.v);
@@ -465,11 +466,11 @@ function connectHost(){
   conn.on('close',()=>{ if(hostConn===conn && role==='guest') scheduleRetry(); });
 }
 function goHome(msg){
-  clearTimeout(retryT); clearTimeout(autoT); clearTimeout(bubT);
+  clearTimeout(retryT); clearTimeout(autoT); Object.values(bubTs).forEach(clearTimeout);
   role=null; view=null; G=null; conns.clear();
   if(peer){ try{ peer.destroy(); }catch{} peer=null; }
   store.del(sessionStorage,'uno-host'); store.del(sessionStorage,'uno-guest');
-  ui.screen='home'; ui.error=msg||''; ui.picking=null; ui.sel=[]; ui.bubble=null; ui.reconnecting=false;
+  ui.screen='home'; ui.error=msg||''; ui.picking=null; ui.sel=[]; ui.bubbles={}; ui.reconnecting=false;
   render();
 }
 function act(a){
@@ -521,8 +522,8 @@ function renderLobby(){
   </div>`;
 }
 function bubbleHTML(pid,mine){
-  const b=ui.bubble; if(!b || b.pid!==pid) return '';
-  return `<span class="bubble ${b.kind==='emote'?'emote':''} ${mine?'mine':''} ${b.fresh?'fresh':''}">${esc(b.text)}</span>`;
+  const b=ui.bubbles[pid]; if(!b) return '';
+  return `<span data-pid="${esc(pid)}" class="bubble ${b.kind==='emote'?'emote':''} ${mine?'mine':''} ${b.fresh?'fresh':''}">${esc(b.text)}</span>`;
 }
 function renderTable(){
   const v=view, rules=v.rules||DEFAULT_RULES;
@@ -653,11 +654,12 @@ function render(){
   else{
     const fx=view.fx, fresh = fx && fx.seq!==lastFx;
     if(fresh){
-      lastFx=fx.seq; ui.bubble={...fx,fresh:true};
-      clearTimeout(bubT); bubT=setTimeout(()=>{ ui.bubble=null; document.querySelectorAll('.bubble').forEach(b=>b.remove()); },2400);
+      lastFx=fx.seq; ui.bubbles[fx.pid]={...fx,fresh:true};
+      clearTimeout(bubTs[fx.pid]);
+      bubTs[fx.pid]=setTimeout(()=>{ delete ui.bubbles[fx.pid]; document.querySelectorAll('.bubble[data-pid="'+CSS.escape(fx.pid)+'"]').forEach(b=>b.remove()); },2400);
     }
     renderTable();
-    if(fresh){ animateFx(fx); ui.bubble.fresh=false; }
+    if(fresh){ animateFx(fx); ui.bubbles[fx.pid].fresh=false; }
   }
   if(ui.reconnecting && ui.screen==='game') app.insertAdjacentHTML('afterbegin','<div class="banner">ホストとの接続が切れました。再接続中…</div>');
   const mine = !!view && view.phase==='playing' && view.turn===view.you;
