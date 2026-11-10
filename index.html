@@ -674,11 +674,6 @@ function submitPlay(ids){
   ui.sel=[]; act({type:'play',ids});
   if(role!=='host') render();
 }
-// reactions fire on pointerdown: a re-render (someone else's action) between press and release would otherwise swallow the click
-app.addEventListener('pointerdown',e=>{
-  const el=e.target.closest('[data-act="emote"]'); if(!el) return;
-  e.preventDefault(); act({type:'emote',e:el.dataset.e});
-});
 app.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]'); if(!el) return;
   const a=el.dataset.act;
@@ -698,6 +693,7 @@ app.addEventListener('click',e=>{
   else if(a==='rule') act({type:'rule',key:el.dataset.k,val:el.checked});
   else if(a==='draw'){ ui.sel=[]; act({type:'draw'}); }
   else if(a==='pass') act({type:'pass'});
+  else if(a==='emote') act({type:'emote',e:el.dataset.e});
   else if(a==='uno') act({type:'uno'});
   else if(a==='catch') act({type:'catch',target:el.dataset.pid});
   else if(a==='card'){
