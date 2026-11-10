@@ -40,20 +40,31 @@ input:focus{border-color:var(--accent)}
 .plist{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:8px}
 .plist li{display:flex;align-items:center;gap:10px;background:#0f1d38;border-radius:10px;padding:10px 12px;font-weight:600}
 .plist .tag{margin-left:auto;font-size:11px;color:var(--muted);font-weight:400}
-.dot{width:9px;height:9px;border-radius:50%;background:var(--g);flex:none}.dot.off{background:#667}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--g);flex:none}
 .hint{color:var(--muted);font-size:13px;text-align:center;margin:16px 0 0}
+.rules{margin:16px 0 0;display:grid;gap:6px;text-align:left}
+.rules h3{font-size:12px;color:var(--muted);margin:0;font-weight:400}
+.rules label,.rules .ro{display:flex;gap:8px;align-items:flex-start;margin:0;font-size:13px;color:var(--text);background:#0f1d38;border-radius:10px;padding:9px 10px}
+.rules label{cursor:pointer}
+.rules input{width:auto;padding:0;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.rules .ro.off{color:var(--muted);text-decoration:line-through}
 
 /* ---------- table ---------- */
 .table{flex:1;display:flex;flex-direction:column;min-height:100dvh;padding:10px 12px calc(12px + env(safe-area-inset-bottom))}
 .top{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
 .top b{color:var(--text);letter-spacing:.12em}
 .top .leave{margin-left:auto;background:transparent;border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted)}
-.opps{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:10px}
-.opp{background:rgba(255,255,255,.05);border:2px solid transparent;border-radius:14px;padding:8px 12px;min-width:104px;text-align:center;transition:border-color .2s,background .2s}
-.opp.active{border-color:var(--accent);background:rgba(255,212,71,.1)}
+.arena{flex:1;display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto 1fr;grid-template-areas:"l t r" "l c r";gap:8px;margin-top:10px}
+.seatL{grid-area:l;align-self:center}.seatR{grid-area:r;align-self:center}
+.seatT{grid-area:t;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.opp{position:relative;background:rgba(255,255,255,.05);border:2px solid transparent;border-radius:14px;padding:8px 12px;min-width:112px;text-align:center;transition:border-color .2s,background .2s}
+.opp.active{border-color:var(--accent);background:rgba(255,212,71,.1);animation:glow 1.1s infinite alternate}
+@keyframes glow{to{box-shadow:0 0 24px rgba(255,212,71,.55)}}
 .opp.off{opacity:.5}
+.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;margin:0 auto 4px;font-weight:900;color:#fff;font-size:16px}
 .opp .nm{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;margin:0 auto}
 .opp .cnt{font-size:12px;color:var(--muted);margin-top:2px}
+.opp.active .cnt{color:var(--accent)}
 .backs{display:flex;justify-content:center;height:34px;margin-top:6px}
 .backs i{width:22px;height:32px;border-radius:4px;background:#111;border:2px solid #fff;margin-left:-14px;box-shadow:0 1px 3px rgba(0,0,0,.4);position:relative}
 .backs i:first-child{margin-left:0}
@@ -61,39 +72,48 @@ input:focus{border-color:var(--accent)}
 .badge{display:inline-block;background:var(--r);color:#fff;font-weight:900;font-size:11px;border-radius:6px;padding:2px 6px;margin-top:5px;font-style:italic}
 .catch{display:block;margin:6px auto 0;background:var(--accent);color:#1b1b1b;font-weight:800;font-size:11px;border-radius:8px;padding:5px 8px;animation:pulse .8s infinite alternate}
 @keyframes pulse{to{transform:scale(1.07)}}
+.bubble{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#fff;color:#111;border-radius:12px;padding:5px 10px;font-size:12px;font-weight:800;white-space:nowrap;z-index:6;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.bubble.emote{font-size:28px;padding:2px 8px}
+.bubble.mine{position:static;transform:none}
+.bubble.fresh{animation:pop .25s ease-out}
+@keyframes pop{from{scale:.4;opacity:0}}
 
-.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:200px}
+.center{grid-area:c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:200px}
+.pend{font-size:30px;font-weight:900;color:var(--r);font-style:italic;text-shadow:0 0 14px rgba(229,72,77,.7);animation:pulse .6s infinite alternate;height:36px;line-height:36px}
 .piles{display:flex;align-items:center;gap:22px}
 .deck{position:relative;width:var(--cw);height:var(--ch);border-radius:10px;background:#111;border:4px solid #fff;box-shadow:3px 3px 0 #ddd,6px 6px 0 #bbb,0 10px 24px rgba(0,0,0,.4);transition:transform .12s}
 .deck::after{content:"UNO";position:absolute;inset:18% 6%;border-radius:50%;background:var(--r);transform:rotate(-24deg);display:grid;place-items:center;color:var(--y);font-weight:900;font-style:italic;font-size:calc(var(--cw)*.26)}
 .deck.can{outline:3px solid var(--accent);outline-offset:4px}
 .deck.can:hover{transform:translateY(-4px)}
 .deck small{position:absolute;bottom:-32px;left:-20px;right:-20px;white-space:nowrap;text-align:center;font-size:11px;color:var(--muted)}
+.flycard{position:fixed;width:var(--cw);height:var(--ch);border-radius:10px;background:#111;border:4px solid #fff;z-index:40;pointer-events:none}
 .discard{position:relative;padding:8px;border-radius:18px;transition:box-shadow .25s,background .25s}
 .discard.col-r{background:rgba(229,72,77,.25);box-shadow:0 0 0 3px var(--r),0 0 40px rgba(229,72,77,.5)}
 .discard.col-y{background:rgba(245,197,24,.2);box-shadow:0 0 0 3px var(--y),0 0 40px rgba(245,197,24,.45)}
 .discard.col-g{background:rgba(47,168,79,.25);box-shadow:0 0 0 3px var(--g),0 0 40px rgba(47,168,79,.5)}
 .discard.col-b{background:rgba(47,125,225,.25);box-shadow:0 0 0 3px var(--b),0 0 40px rgba(47,125,225,.5)}
-.discard .card{animation:drop .22s ease-out}
-@keyframes drop{from{transform:translateY(-26px) rotate(-8deg) scale(1.1);opacity:.4}}
 .dir{font-size:26px;color:var(--muted);width:30px;text-align:center}
 .log{font-size:12px;color:var(--muted);text-align:center;line-height:1.6;min-height:58px;margin-top:18px}
 .log div:last-child{color:var(--text);font-size:13px}
 
 .me{margin-top:6px}
 .mebar{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;flex-wrap:wrap}
-.turn{font-weight:800;font-size:15px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.07)}
+.turn{font-weight:800;font-size:15px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.07);text-align:center}
 .turn.mine{background:var(--accent);color:#1b1b1b}
 .act{padding:9px 16px;border-radius:999px;font-weight:800;font-size:14px;background:#fff;color:#1b1b1b}
+.act.sub{background:transparent;border:1px solid var(--line);color:var(--text)}
 .act.uno{background:var(--r);color:#fff;font-style:italic;letter-spacing:.05em}
 .act.uno.said{background:transparent;border:2px solid var(--r);color:var(--r)}
-.hand{display:flex;justify-content:center;padding:22px 4px 6px;--ov:6px}
+.hand{display:flex;justify-content:center;padding:30px 4px 6px;--ov:6px}
 .hand .card{flex:none;margin-left:var(--ov);transition:transform .12s,filter .15s}
 .hand .card:first-child{margin-left:0}
 .hand .card.ok{transform:translateY(-12px)}
 .hand .card.ok:hover{transform:translateY(-22px);z-index:5}
 .hand .card.no{filter:brightness(.5) saturate(.7)}
 .hand .card.new{outline:3px solid var(--accent);outline-offset:2px}
+.hand .card.sel{transform:translateY(-26px);outline:3px solid var(--accent);outline-offset:2px;z-index:4}
+.emotes{display:flex;justify-content:center;gap:6px;margin-top:6px}
+.emotes button{background:rgba(255,255,255,.07);border-radius:999px;width:40px;height:32px;font-size:17px}
 
 /* ---------- card ---------- */
 .card{position:relative;width:var(--cw);height:var(--ch);border-radius:10px;border:4px solid #fff;padding:0;color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.35);overflow:hidden;display:block;font-weight:900;font-style:italic}
@@ -108,8 +128,8 @@ input:focus{border-color:var(--accent)}
 .u69{text-decoration:underline}
 
 /* ---------- overlays ---------- */
-.modal{position:fixed;inset:0;background:rgba(5,10,22,.72);display:grid;place-items:center;z-index:50;padding:16px}
-.modal .box{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;width:min(360px,100%);text-align:center}
+.modal{position:fixed;inset:0;background:rgba(5,10,22,.72);display:grid;place-items:center;z-index:50;padding:16px;overflow:auto}
+.modal .box{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;width:min(380px,100%);text-align:center}
 .modal h2{margin:0 0 16px;font-size:20px}
 .pick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pick button{height:84px;border-radius:14px;font-weight:800;font-size:18px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4)}
@@ -119,9 +139,11 @@ input:focus{border-color:var(--accent)}
 #toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:#fff;color:#111;padding:10px 16px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.2s;z-index:70;white-space:nowrap}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 
-@media (max-width:560px){
+@media (max-width:640px){
   :root{--cw:58px;--ch:88px}
-  .opp{min-width:84px;padding:6px 8px}
+  .arena{grid-template-areas:"l t r" "c c c"}
+  .seatL,.seatR{align-self:end;margin-top:34px}
+  .opp{min-width:88px;padding:6px 8px}
   .piles{gap:14px}
 }
 </style>
@@ -141,6 +163,15 @@ const COLORS = ['r','y','g','b'];
 const COLOR_NAME = {r:'赤',y:'黄',g:'緑',b:'青'};
 const PREFIX = 'uno-friends-room-v1-';
 const MAX_PLAYERS = 8;
+const RULES = [
+  ['multi','同じ数字・記号をまとめて出せる（2枚出し）'],
+  ['stack','ドローを重ねて返せる（+2には+2か+4、+4には+4）'],
+  ['noSymbolEnd','記号カードではあがれない（数字であがる）'],
+  ['shuffle','シャッフルワイルドを入れる（全員の手札を集めて配り直す）'],
+];
+const DEFAULT_RULES = {multi:true,stack:true,noSymbolEnd:true,shuffle:false};
+const EMOTES = ['😆','😭','😡','👏','🤔'];
+const AV_COLORS = ['#e5484d','#2f7de1','#2fa84f','#c08a00','#8e4ec6','#d6409f','#12a594','#f76b15'];
 const rand = n => Math.floor(Math.random()*n);
 const uid = () => Math.random().toString(36).slice(2,10);
 const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -162,8 +193,24 @@ let peer = null, hostConn = null, code = null;
 let G = null;               // host only: authoritative game state
 const conns = new Map();    // host only: pid -> connection
 let view = null;            // what this player sees
-const ui = { screen:'home', error:'', picking:null, reconnecting:false };
-let autoT, retryT, everConnected = false;
+const ui = { screen:'home', error:'', picking:null, sel:[], bubble:null, reconnecting:false };
+let autoT, retryT, bubT, lastFx, wasMine = false, everConnected = false;
+
+/* ================= game rules (shared) ================= */
+const isNum = c => /^\d$/.test(c.v);
+function cardName(c){
+  if(c.v==='wild') return 'ワイルド';
+  if(c.v==='d4') return 'ワイルド ドロー4';
+  if(c.v==='sh') return 'シャッフルワイルド';
+  return COLOR_NAME[c.c]+'の'+({skip:'スキップ',rev:'リバース',d2:'ドロー2'}[c.v]||c.v);
+}
+function canPlay(card, top, color){ return card.c==='w' || card.c===color || (top && card.v===top.v); }
+// s: {top,color,drawn,pending,rules} — may this card be the first card of a play?
+function playable(card, s){
+  if(s.drawn!=null && s.drawn!==card.id) return false;
+  if(s.pending>0) return s.rules.stack && (card.v==='d4' || (card.v==='d2' && s.top && s.top.v==='d2'));
+  return canPlay(card, s.top, s.color);
+}
 
 /* ================= game rules (host side) ================= */
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rand(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -177,15 +224,11 @@ function newDeck(){
     }
   }
   for(let k=0;k<4;k++){ d.push({id:id++,c:'w',v:'wild'}); d.push({id:id++,c:'w',v:'d4'}); }
+  if(G.rules.shuffle) for(let k=0;k<2;k++) d.push({id:id++,c:'w',v:'sh'});
   return shuffle(d);
 }
-function cardName(c){
-  if(c.v==='wild') return 'ワイルド';
-  if(c.v==='d4') return 'ワイルド ドロー4';
-  return COLOR_NAME[c.c]+'の'+({skip:'スキップ',rev:'リバース',d2:'ドロー2'}[c.v]||c.v);
-}
-function canPlay(card, top, color){ return card.c==='w' || card.c===color || (top && card.v===top.v); }
 function addLog(s){ G.log.push(s); if(G.log.length>30) G.log.shift(); }
+function setFx(pid,text,kind,n){ G.fx={seq:((G.fx&&G.fx.seq)||0)+1,pid,text,kind,n:n||0}; }
 function nextIdx(steps){ const n=G.players.length; return (((G.turn + G.dir*steps) % n) + n) % n; }
 function drawCards(p,n){
   let got=0;
@@ -199,16 +242,24 @@ function drawCards(p,n){
   if(p.hand.length!==1) p.calledUno=false;
   return got;
 }
+function shuffleHands(){
+  const all=[], n=G.players.length;
+  for(const q of G.players){ all.push(...q.hand); q.hand=[]; }
+  shuffle(all);
+  let idx=G.turn;
+  for(const c of all){ idx=(((idx+G.dir)%n)+n)%n; G.players[idx].hand.push(c); }
+  for(const q of G.players) q.calledUno = q.hand.length===1;
+}
 function startRound(){
   G.players = G.players.filter(p=>p.online);
   if(G.players.length<2){ G.phase='lobby'; return; }
   G.deck=newDeck(); G.discard=[];
   for(const p of G.players){ p.hand=[]; p.calledUno=false; }
   for(const p of G.players) drawCards(p,7);
-  let i=G.deck.length-1; while(!/^\d$/.test(G.deck[i].v)) i--;
+  let i=G.deck.length-1; while(!isNum(G.deck[i])) i--;
   const first=G.deck.splice(i,1)[0];
   G.discard.push(first); G.color=first.c;
-  G.turn=rand(G.players.length); G.dir=1; G.drawn=null; G.winner=null; G.phase='playing';
+  G.turn=rand(G.players.length); G.dir=1; G.drawn=null; G.pending=0; G.winner=null; G.phase='playing';
   G.log=[]; addLog('ゲーム開始！ '+G.players[G.turn].name+' から');
 }
 function handleAction(pid,a){
@@ -219,53 +270,70 @@ function handleAction(pid,a){
     case 'start':
       if(pid!==G.hostPid || G.phase==='playing') return;
       startRound(); break;
+    case 'rule':
+      if(pid!==G.hostPid || G.phase==='playing' || !(a.key in DEFAULT_RULES)) return;
+      G.rules[a.key]=!!a.val; break;
     case 'play': {
       if(cur!==p) return;
-      const i=p.hand.findIndex(c=>c.id===a.id); if(i<0) return;
-      const card=p.hand[i];
-      if(G.drawn!=null && G.drawn!==card.id) return;
-      if(!canPlay(card, G.discard[G.discard.length-1], G.color)) return;
-      if(card.c==='w' && !COLORS.includes(a.color)) return;
-      p.hand.splice(i,1); G.discard.push(card);
-      G.color = card.c==='w' ? a.color : card.c; G.drawn=null;
+      const ids=Array.isArray(a.ids)?a.ids:[];
+      if(!ids.length || new Set(ids).size!==ids.length) return;
+      const cards=ids.map(id=>p.hand.find(c=>c.id===id)); if(cards.some(c=>!c)) return;
+      const first=cards[0], last=cards[cards.length-1], k=cards.length;
+      if(k>1 && (!G.rules.multi || G.drawn!=null || cards.some(c=>c.v!==first.v))) return;
+      if(!playable(first,{top:G.discard[G.discard.length-1],color:G.color,drawn:G.drawn,pending:G.pending,rules:G.rules})) return;
+      if(first.c==='w' && !COLORS.includes(a.color)) return;
+      if(G.rules.noSymbolEnd && k===p.hand.length && !isNum(first)) return;
+      p.hand=p.hand.filter(c=>!ids.includes(c.id)); G.discard.push(...cards);
+      G.color = last.c==='w' ? a.color : last.c; G.drawn=null;
       if(p.hand.length!==1) p.calledUno=false;
-      addLog(p.name+' が '+cardName(card)+' を出した'+(card.c==='w' ? '（'+COLOR_NAME[G.color]+'を指定）' : ''));
+      addLog(p.name+' が '+cardName(last)+' を'+(k>1?k+'枚':'')+'出した'+(last.c==='w' ? '（'+COLOR_NAME[G.color]+'を指定）' : ''));
+      setFx(pid,cardName(last)+(k>1?' ×'+k:''),'play');
       if(!p.hand.length){ G.phase='ended'; G.winner=pid; p.wins++; addLog('🎉 '+p.name+' の勝ち！'); break; }
       let steps=1;
-      if(card.v==='skip'){ steps=2; addLog(G.players[nextIdx(1)].name+' はスキップ'); }
-      else if(card.v==='rev'){ G.dir*=-1; if(n===2) steps=2; }
-      else if(card.v==='d2'||card.v==='d4'){
-        const t=G.players[nextIdx(1)], k=card.v==='d2'?2:4;
-        drawCards(t,k); steps=2; addLog(t.name+' は'+k+'枚引いてスキップ');
+      if(first.v==='skip'){ steps=1+k; addLog(k>1 ? k+'人分スキップ' : G.players[nextIdx(1)].name+' はスキップ'); }
+      else if(first.v==='rev'){ if(n===2) steps=1+k; else if(k%2) G.dir*=-1; }
+      else if(first.v==='d2'||first.v==='d4'){
+        const amt=k*(first.v==='d2'?2:4);
+        if(G.rules.stack){ G.pending+=amt; addLog('ドロー合計 +'+G.pending+' → '+G.players[nextIdx(1)].name); }
+        else{ const t=G.players[nextIdx(1)]; drawCards(t,amt); steps=2; addLog(t.name+' は'+amt+'枚引いてスキップ'); }
       }
+      else if(first.v==='sh'){ shuffleHands(); addLog('🔀 全員の手札を集めて配り直した'); }
       G.turn=nextIdx(steps);
       break;
     }
     case 'draw': {
       if(cur!==p || G.drawn!=null) return;
+      if(G.pending>0){
+        const k=drawCards(p,G.pending);
+        addLog(p.name+' は'+k+'枚引いた'); setFx(pid,k+'枚引いた…','draw',k);
+        G.pending=0; G.turn=nextIdx(1); break;
+      }
       const before=p.hand.length;
       drawCards(p,1);
       const card = p.hand.length>before ? p.hand[p.hand.length-1] : null;
-      addLog(p.name+' がカードを引いた');
+      addLog(p.name+' がカードを引いた'); setFx(pid,'1枚引いた','draw',1);
       if(card && canPlay(card, G.discard[G.discard.length-1], G.color)) G.drawn=card.id;
       else G.turn=nextIdx(1);
       break;
     }
     case 'pass':
       if(cur!==p || G.drawn==null) return;
-      G.drawn=null; G.turn=nextIdx(1); addLog(p.name+' はパス');
+      G.drawn=null; G.turn=nextIdx(1); addLog(p.name+' はパス'); setFx(pid,'パス','say');
       break;
     case 'uno':
       if(G.phase!=='playing' || p.calledUno) return;
-      if(p.hand.length===1 || (p.hand.length===2 && cur===p)){ p.calledUno=true; addLog('📣 '+p.name+'「UNO！」'); }
+      if(p.hand.length===1 || (p.hand.length===2 && cur===p)){ p.calledUno=true; addLog('📣 '+p.name+'「UNO！」'); setFx(pid,'UNO！','say'); }
       break;
     case 'catch': {
       if(G.phase!=='playing') return;
       const t=G.players.find(x=>x.pid===a.target);
       if(!t || t===p || t.hand.length!==1 || t.calledUno) return;
-      drawCards(t,2); addLog('👉 '+p.name+' が指摘！ '+t.name+' はUNOを言い忘れて2枚引いた');
+      drawCards(t,2); addLog('👉 '+p.name+' が指摘！ '+t.name+' はUNOを言い忘れて2枚引いた'); setFx(t.pid,'言い忘れ！ +2','draw',2);
       break;
     }
+    case 'emote':
+      if(!EMOTES.includes(a.e)) return;
+      setFx(pid,a.e,'emote'); break;
   }
 }
 function viewFor(pid){
@@ -274,11 +342,11 @@ function viewFor(pid){
   const hand = me ? me.hand.slice().sort((a,b)=> order[a.c]-order[b.c] || (a.v<b.v?-1:a.v>b.v?1:0)) : [];
   const cur = G.phase==='playing' ? G.players[G.turn] : null;
   return {
-    code, phase:G.phase, you:pid, hostPid:G.hostPid,
+    code, phase:G.phase, you:pid, hostPid:G.hostPid, rules:G.rules,
     players:G.players.map(p=>({pid:p.pid,name:p.name,count:p.hand.length,online:p.online,calledUno:p.calledUno,wins:p.wins})),
     hand, top:G.discard[G.discard.length-1]||null, color:G.color, turn:cur?cur.pid:null, dir:G.dir,
-    drawn: cur && cur.pid===pid ? G.drawn : null,
-    deckCount:G.deck.length, winner:G.winner, log:G.log.slice(-4),
+    drawn: cur && cur.pid===pid ? G.drawn : null, pending:G.pending||0,
+    deckCount:G.deck.length, winner:G.winner, log:G.log.slice(-4), fx:G.fx||null,
   };
 }
 function broadcast(){
@@ -306,7 +374,7 @@ function onGuestConn(conn){
   conn.on('data',m=>{
     if(!m || typeof m!=='object') return;
     if(m.t==='join'){
-      const pid=String(m.pid||'').slice(0,20); if(!pid || pid===myPid) return;
+      const pid=String(m.pid||'').replace(/[^a-z0-9]/gi,'').slice(0,20); if(!pid || pid===myPid) return;
       const name=String(m.name||'').trim().slice(0,12)||'ゲスト';
       let p=G.players.find(x=>x.pid===pid);
       if(p){
@@ -352,8 +420,8 @@ function openHost(resume,tries=0){
 }
 function createRoom(){
   code=makeCode();
-  G={hostPid:myPid,phase:'lobby',players:[{pid:myPid,name:myName,hand:[],online:true,calledUno:false,wins:0}],
-     deck:[],discard:[],color:null,turn:0,dir:1,drawn:null,winner:null,log:[]};
+  G={hostPid:myPid,phase:'lobby',rules:{...DEFAULT_RULES},players:[{pid:myPid,name:myName,hand:[],online:true,calledUno:false,wins:0}],
+     deck:[],discard:[],color:null,turn:0,dir:1,drawn:null,pending:0,winner:null,log:[],fx:null};
   ui.screen='connecting'; render();
   openHost(false);
 }
@@ -392,11 +460,11 @@ function connectHost(){
   conn.on('close',()=>{ if(hostConn===conn && role==='guest') scheduleRetry(); });
 }
 function goHome(msg){
-  clearTimeout(retryT); clearTimeout(autoT);
+  clearTimeout(retryT); clearTimeout(autoT); clearTimeout(bubT);
   role=null; view=null; G=null; conns.clear();
   if(peer){ try{ peer.destroy(); }catch{} peer=null; }
   store.del(sessionStorage,'uno-host'); store.del(sessionStorage,'uno-guest');
-  ui.screen='home'; ui.error=msg||''; ui.picking=null; ui.reconnecting=false;
+  ui.screen='home'; ui.error=msg||''; ui.picking=null; ui.sel=[]; ui.bubble=null; ui.reconnecting=false;
   render();
 }
 function act(a){
@@ -407,10 +475,16 @@ addEventListener('pagehide',()=>{ try{ if(peer) peer.destroy(); }catch{} });
 
 /* ================= rendering ================= */
 function cardHTML(c,cls,attrs){
-  const label=({skip:'⊘',rev:'⇄',d2:'+2',wild:'W',d4:'+4'})[c.v]||c.v;
+  const label=({skip:'⊘',rev:'⇄',d2:'+2',wild:'W',d4:'+4',sh:'🔀'})[c.v]||c.v;
   const u = (c.v==='6'||c.v==='9') ? ' u69' : '';
   return `<button class="card c-${c.c} ${cls||''}" ${attrs||''} aria-label="${esc(cardName(c))}">`+
     `<span class="co tl${u}">${label}</span><span class="ov"><span class="bg${u}">${label}</span></span><span class="co br${u}">${label}</span></button>`;
+}
+function rulesHTML(editable){
+  const r=view.rules||DEFAULT_RULES;
+  return `<div class="rules"><h3>ルール設定${editable?'':'（ホストが変更できます）'}</h3>${RULES.map(([k,t])=> editable
+    ? `<label><input type="checkbox" data-act="rule" data-k="${k}" ${r[k]?'checked':''}><span>${t}</span></label>`
+    : `<div class="ro ${r[k]?'':'off'}">${r[k]?'✓':'✕'} <span>${t}</span></div>`).join('')}</div>`;
 }
 function renderHome(){
   const urlRoom=(new URLSearchParams(location.search).get('room')||'').toUpperCase();
@@ -434,53 +508,95 @@ function renderLobby(){
     <div class="code">${esc(view.code)}</div>
     <button class="btn ghost" data-act="copy">招待リンクをコピー</button>
     <ul class="plist">${view.players.map(p=>`<li><span class="dot"></span>${esc(p.name)}<span class="tag">${p.pid===view.hostPid?'ホスト':''}${p.pid===view.you?'（あなた）':''}</span></li>`).join('')}</ul>
+    ${rulesHTML(isHost)}
     ${isHost
       ? `<button class="btn" data-act="start" ${view.players.length<2?'disabled':''}>ゲームを始める</button>${view.players.length<2?'<p class="hint">友達にリンクを送って、参加を待ちましょう</p>':''}`
       : `<p class="hint">ホストがゲームを始めるのを待っています…</p>`}
     <button class="btn ghost" data-act="leave">退出する</button>
   </div>`;
 }
+function bubbleHTML(pid,mine){
+  const b=ui.bubble; if(!b || b.pid!==pid) return '';
+  return `<span class="bubble ${b.kind==='emote'?'emote':''} ${mine?'mine':''} ${b.fresh?'fresh':''}">${esc(b.text)}</span>`;
+}
 function renderTable(){
-  const v=view, meIdx=v.players.findIndex(p=>p.pid===v.you), me=v.players[meIdx];
+  const v=view, rules=v.rules||DEFAULT_RULES;
+  const meIdx=v.players.findIndex(p=>p.pid===v.you), me=v.players[meIdx];
   const myTurn=v.turn===v.you && v.phase==='playing';
   const turnP=v.players.find(p=>p.pid===v.turn);
+  if(!myTurn) ui.sel=[];
+  ui.sel=ui.sel.filter(id=>v.hand.some(c=>c.id===id));
+
+  // seats go clockwise from me: left, top (left→right), right
   const opps=[]; for(let i=1;i<v.players.length;i++) opps.push(v.players[(meIdx+i)%v.players.length]);
-  const oppHTML=opps.map(p=>{
+  let L=[],T=[],R=[]; const n=opps.length;
+  if(n===1) T=opps; else if(n===2){ L=[opps[0]]; R=[opps[1]]; } else if(n>2){ L=[opps[0]]; R=[opps[n-1]]; T=opps.slice(1,n-1); }
+  const seat=p=>{
     const forgot=p.count===1 && !p.calledUno && v.phase==='playing';
-    return `<div class="opp ${p.pid===v.turn?'active':''} ${p.online?'':'off'}">
+    const active=p.pid===v.turn;
+    const idx=v.players.indexOf(p);
+    return `<div class="opp ${active?'active':''} ${p.online?'':'off'}" data-seat="${esc(p.pid)}">
+      <div class="av" style="background:${AV_COLORS[idx%AV_COLORS.length]}">${esc([...p.name][0]||'?')}</div>
       <div class="nm">${esc(p.name)}${p.online?'':'（切断中）'}</div>
       <div class="backs">${'<i></i>'.repeat(Math.min(p.count,7))}</div>
-      <div class="cnt">${p.count}枚</div>
-      ${p.count===1&&p.calledUno?'<span class="badge">UNO!</span>':''}
+      <div class="cnt">${active?'考え中… ':''}${p.count}枚</div>
+      ${p.count===1&&p.calledUno?'<span class="badge">UNO！</span>':''}
       ${forgot?`<button class="catch" data-act="catch" data-pid="${esc(p.pid)}">UNO言ってない！</button>`:''}
+      ${bubbleHTML(p.pid,false)}
     </div>`;
-  }).join('');
+  };
+
+  const st={top:v.top,color:v.color,drawn:v.drawn,pending:v.pending,rules};
+  const selCard=ui.sel.length ? v.hand.find(c=>c.id===ui.sel[0]) : null;
   const handHTML=v.hand.map(c=>{
     let cls='';
-    if(myTurn){ const ok=(v.drawn==null||v.drawn===c.id) && canPlay(c,v.top,v.color); cls=ok?'ok':'no'; }
+    if(myTurn){
+      if(selCard){
+        if(ui.sel.includes(c.id)) cls='sel';
+        else if(c.v===selCard.v && !(rules.noSymbolEnd && !isNum(c) && ui.sel.length+1===v.hand.length)) cls='ok add';
+        else cls='no';
+      }else{
+        cls = playable(c,st) && !(rules.noSymbolEnd && v.hand.length===1 && !isNum(c)) ? 'ok' : 'no';
+      }
+    }
     if(v.drawn===c.id) cls+=' new';
     return cardHTML(c,cls,`data-act="card" data-id="${c.id}"`);
   }).join('');
   const canUno = v.phase==='playing' && me && !me.calledUno && (v.hand.length===1 || (v.hand.length===2 && myTurn));
   const canDraw = myTurn && v.drawn==null;
+  let turnText = turnP ? esc(turnP.name)+' の番' : '';
+  if(myTurn){
+    if(v.pending>0) turnText = `+${v.pending} が来た！ ${rules.stack?'ドローカードで返すか、':''}山札から${v.pending}枚引く`;
+    else if(selCard) turnText = '同じカードをタップで追加できます';
+    else if(v.drawn!=null) turnText = '引いたカードを出す？';
+    else turnText = 'あなたの番です';
+  }
   app.innerHTML=`<div class="table">
     <div class="top">ルーム <b>${esc(v.code)}</b><button class="leave" data-act="copy">招待リンク</button><button class="leave" style="margin-left:0" data-act="leave">退出</button></div>
-    <div class="opps">${oppHTML}</div>
-    <div class="center">
-      <div class="piles">
-        <button class="deck ${canDraw?'can':''}" data-act="draw" ${canDraw?'':'disabled'} aria-label="山札から引く"><small>${canDraw?'タップで引く':'山札 '+v.deckCount+'枚'}</small></button>
-        <div class="dir" title="順番の向き">${v.dir===1?'↻':'↺'}</div>
-        <div class="discard col-${v.color}">${v.top?cardHTML(v.top,'',`disabled data-top="${v.top.id}"`):''}</div>
+    <div class="arena">
+      <div class="seatL">${L.map(seat).join('')}</div>
+      <div class="seatT">${T.map(seat).join('')}</div>
+      <div class="seatR">${R.map(seat).join('')}</div>
+      <div class="center">
+        <div class="pend">${v.pending>0?'+'+v.pending:''}</div>
+        <div class="piles">
+          <button class="deck ${canDraw?'can':''}" data-act="draw" ${canDraw?'':'disabled'} aria-label="山札から引く"><small>${canDraw?(v.pending>0?'タップで'+v.pending+'枚引く':'タップで引く'):'山札 '+v.deckCount+'枚'}</small></button>
+          <div class="dir" title="順番の向き">${v.dir===1?'↻':'↺'}</div>
+          <div class="discard col-${v.color}">${v.top?cardHTML(v.top,'','disabled'):''}</div>
+        </div>
+        <div class="log">${v.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div>
       </div>
-      <div class="log">${v.log.map(l=>`<div>${esc(l)}</div>`).join('')}</div>
     </div>
     <div class="me">
       <div class="mebar">
-        <span class="turn ${myTurn?'mine':''}">${myTurn ? (v.drawn!=null?'引いたカードを出す？':'あなたの番です') : (turnP?esc(turnP.name)+' の番':'')}</span>
+        ${bubbleHTML(v.you,true)}
+        <span class="turn ${myTurn?'mine':''}">${turnText}</span>
+        ${selCard?`<button class="act" data-act="playsel">出す（${ui.sel.length}枚）</button><button class="act sub" data-act="unsel">やめる</button>`:''}
         ${myTurn&&v.drawn!=null?'<button class="act" data-act="pass">パス</button>':''}
-        ${canUno?'<button class="act uno" data-act="uno">UNO!</button>':(me&&me.calledUno&&v.hand.length<=2?'<span class="act uno said">UNO!</span>':'')}
+        ${canUno?'<button class="act uno" data-act="uno">UNO！</button>':(me&&me.calledUno&&v.hand.length<=2?'<span class="act uno said">UNO！</span>':'')}
       </div>
       <div class="hand">${handHTML}</div>
+      <div class="emotes">${EMOTES.map(e=>`<button data-act="emote" data-e="${e}">${e}</button>`).join('')}</div>
     </div>
   </div>`;
   if(ui.picking!=null && myTurn){
@@ -493,6 +609,7 @@ function renderTable(){
     app.insertAdjacentHTML('beforeend',`<div class="modal"><div class="box">
       <h2>🎉 ${w?esc(w.name):''} の勝ち！</h2>
       <ul class="score">${ranked.map(p=>`<li><span>${esc(p.name)}</span><span>${p.wins}勝</span></li>`).join('')}</ul>
+      ${rulesHTML(isHost)}
       ${isHost?`<button class="btn" data-act="start" ${v.players.filter(p=>p.online).length<2?'disabled':''}>もう一度遊ぶ</button>`:'<p class="hint">ホストが次のゲームを始めるのを待っています…</p>'}
       <button class="btn ghost" data-act="leave">退出する</button>
     </div></div>`);
@@ -504,20 +621,44 @@ function layoutHand(){
   const cw=h.children[0].offsetWidth, avail=h.clientWidth-10, need=n*cw+(n-1)*6;
   h.style.setProperty('--ov', need>avail ? ((avail-n*cw)/(n-1))+'px' : '6px');
 }
-let lastTop=null;
+// fly a card from the player's seat to the pile (play) or from the deck to the seat (draw)
+function animateFx(fx){
+  const seat = fx.pid===view.you ? $('.hand') : document.querySelector('[data-seat="'+CSS.escape(fx.pid)+'"]');
+  if(!seat || !seat.animate) return;
+  const sr=seat.getBoundingClientRect(), sx=sr.left+sr.width/2, sy=sr.top+sr.height/2;
+  if(fx.kind==='play'){
+    const d=$('.discard .card'); if(!d) return;
+    const r=d.getBoundingClientRect();
+    d.animate([{transform:`translate(${sx-r.left-r.width/2}px,${sy-r.top-r.height/2}px) scale(.5) rotate(-25deg)`,opacity:.5},{transform:'none',opacity:1}],{duration:380,easing:'cubic-bezier(.2,.8,.3,1)'});
+  }else if(fx.kind==='draw'){
+    const d=$('.deck'); if(!d) return;
+    const r=d.getBoundingClientRect(), k=Math.min(fx.n||1,5);
+    for(let i=0;i<k;i++){
+      const g=document.createElement('div'); g.className='flycard'; g.style.left=r.left+'px'; g.style.top=r.top+'px';
+      document.body.appendChild(g);
+      const an=g.animate([{transform:'none',opacity:1},{transform:`translate(${sx-r.left-r.width/2}px,${sy-r.top-r.height/2}px) scale(.5)`,opacity:.2}],{duration:420,delay:i*90,easing:'ease-in',fill:'both'});
+      an.onfinish=an.oncancel=()=>g.remove();
+    }
+  }
+}
 function render(){
   if(ui.screen==='home') renderHome();
   else if(ui.screen==='connecting' || !view) app.innerHTML='<div class="panel"><p class="hint" style="margin:0">接続中…</p></div>';
   else if(view.phase==='lobby') renderLobby();
   else{
+    const fx=view.fx, fresh = fx && fx.seq!==lastFx;
+    if(fresh){
+      lastFx=fx.seq; ui.bubble={...fx,fresh:true};
+      clearTimeout(bubT); bubT=setTimeout(()=>{ ui.bubble=null; if(ui.screen==='game' && view && view.phase!=='lobby') render(); },2400);
+    }
     renderTable();
-    // only animate the discard when the top card actually changed
-    const t=$('.discard .card'); const id=view.top?view.top.id:null;
-    if(t && id===lastTop) t.style.animation='none';
-    lastTop=id;
+    if(fresh){ animateFx(fx); ui.bubble.fresh=false; }
   }
   if(ui.reconnecting && ui.screen==='game') app.insertAdjacentHTML('afterbegin','<div class="banner">ホストとの接続が切れました。再接続中…</div>');
-  document.title = view && view.phase==='playing' && view.turn===view.you ? '▶ あなたの番！ - UNO' : 'オンラインUNO';
+  const mine = !!view && view.phase==='playing' && view.turn===view.you;
+  if(mine && !wasMine && navigator.vibrate){ try{ navigator.vibrate(80); }catch{} }
+  wasMine=mine;
+  document.title = mine ? '▶ あなたの番！ - UNO' : 'オンラインUNO';
 }
 addEventListener('resize',layoutHand);
 
@@ -526,6 +667,12 @@ function readName(){
   const n=($('#name').value||'').trim().slice(0,12);
   if(!n){ ui.error='名前を入力してください。'; render(); return false; }
   myName=n; store.set(localStorage,'uno-name',n); return true;
+}
+function submitPlay(ids){
+  const c=view.hand.find(x=>x.id===ids[0]); if(!c) return;
+  if(c.c==='w'){ ui.picking=ids.slice(); render(); return; }
+  ui.sel=[]; act({type:'play',ids});
+  if(role!=='host') render();
 }
 app.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]'); if(!el) return;
@@ -543,16 +690,28 @@ app.addEventListener('click',e=>{
   }
   else if(a==='leave'){ if(view.phase!=='playing' || confirm('ゲームから退出しますか？')){ history.replaceState(null,'',location.pathname); goHome(); } }
   else if(a==='start') act({type:'start'});
-  else if(a==='draw') act({type:'draw'});
+  else if(a==='rule') act({type:'rule',key:el.dataset.k,val:el.checked});
+  else if(a==='draw'){ ui.sel=[]; act({type:'draw'}); }
   else if(a==='pass') act({type:'pass'});
   else if(a==='uno') act({type:'uno'});
   else if(a==='catch') act({type:'catch',target:el.dataset.pid});
+  else if(a==='emote') act({type:'emote',e:el.dataset.e});
   else if(a==='card'){
-    if(!el.classList.contains('ok')) return;
     const id=+el.dataset.id, c=view.hand.find(x=>x.id===id); if(!c) return;
-    if(c.c==='w'){ ui.picking=id; render(); } else act({type:'play',id});
+    if(ui.sel.length){
+      if(ui.sel.includes(id)) ui.sel=ui.sel.filter(x=>x!==id);
+      else if(el.classList.contains('add')) ui.sel.push(id);
+      else return;
+      render(); return;
+    }
+    if(!el.classList.contains('ok')) return;
+    const rules=view.rules||DEFAULT_RULES;
+    const dup = rules.multi && view.drawn==null && view.hand.some(x=>x.id!==id && x.v===c.v);
+    if(dup){ ui.sel=[id]; render(); } else submitPlay([id]);
   }
-  else if(a==='color'){ const id=ui.picking; ui.picking=null; act({type:'play',id,color:el.dataset.c}); if(role!=='host') render(); }
+  else if(a==='playsel'){ if(ui.sel.length) submitPlay(ui.sel.slice()); }
+  else if(a==='unsel'){ ui.sel=[]; render(); }
+  else if(a==='color'){ const ids=ui.picking; ui.picking=null; ui.sel=[]; act({type:'play',ids,color:el.dataset.c}); if(role!=='host') render(); }
   else if(a==='unpick'){ if(e.target===el){ ui.picking=null; render(); } }
 });
 app.addEventListener('keydown',e=>{
@@ -567,6 +726,7 @@ app.addEventListener('keydown',e=>{
   if(saved && urlRoom && saved.code===urlRoom && saved.G && saved.G.hostPid===myPid){
     // host reloaded the page: reopen the same room and let guests reconnect
     code=saved.code; G=saved.G;
+    G.rules={...DEFAULT_RULES,...(G.rules||{})}; G.pending=G.pending||0;
     for(const p of G.players) p.online = p.pid===myPid;
     ui.screen='connecting'; render(); openHost(true);
   }else if(urlRoom && myName && store.get(sessionStorage,'uno-guest')===urlRoom){
