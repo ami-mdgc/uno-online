@@ -649,7 +649,7 @@ function render(){
     const fx=view.fx, fresh = fx && fx.seq!==lastFx;
     if(fresh){
       lastFx=fx.seq; ui.bubble={...fx,fresh:true};
-      clearTimeout(bubT); bubT=setTimeout(()=>{ ui.bubble=null; if(ui.screen==='game' && view && view.phase!=='lobby') render(); },2400);
+      clearTimeout(bubT); bubT=setTimeout(()=>{ ui.bubble=null; document.querySelectorAll('.bubble').forEach(b=>b.remove()); },2400);
     }
     renderTable();
     if(fresh){ animateFx(fx); ui.bubble.fresh=false; }
@@ -674,6 +674,11 @@ function submitPlay(ids){
   ui.sel=[]; act({type:'play',ids});
   if(role!=='host') render();
 }
+// reactions fire on pointerdown: a re-render (someone else's action) between press and release would otherwise swallow the click
+app.addEventListener('pointerdown',e=>{
+  const el=e.target.closest('[data-act="emote"]'); if(!el) return;
+  e.preventDefault(); act({type:'emote',e:el.dataset.e});
+});
 app.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]'); if(!el) return;
   const a=el.dataset.act;
@@ -695,7 +700,6 @@ app.addEventListener('click',e=>{
   else if(a==='pass') act({type:'pass'});
   else if(a==='uno') act({type:'uno'});
   else if(a==='catch') act({type:'catch',target:el.dataset.pid});
-  else if(a==='emote') act({type:'emote',e:el.dataset.e});
   else if(a==='card'){
     const id=+el.dataset.id, c=view.hand.find(x=>x.id===id); if(!c) return;
     if(ui.sel.length){
