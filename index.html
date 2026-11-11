@@ -215,6 +215,7 @@ let G = null;               // host only: authoritative game state
 const conns = new Map();    // host only: pid -> connection
 let view = null;            // what this player sees
 const bubTs = {};
+let connT;
 const ui = { screen:'home', error:'', picking:null, sel:[], bubbles:{}, reconnecting:false };
 let autoT, retryT, lastFx, lastSig, seenView = false, wasMine = false, everConnected = false;
 
@@ -470,17 +471,31 @@ function createRoom(){
   ui.screen='connecting'; render();
   openHost(false);
 }
+function connectingHTML(){
+  const st = ui.connStage==='host' ? 'ホストに接続しています…' : 'サーバーに接続しています…';
+  if(!ui.connSlow) return '<div class="panel"><p class="hint" style="margin:0">'+st+'</p></div>';
+  let ice=''; try{ if(hostConn && hostConn.peerConnection) ice=' / ICE: '+hostConn.peerConnection.iceConnectionState; }catch{}
+  return '<div class="panel"><div class="err">つながりません。'+(ui.connStage==='host'
+      ? 'ホストとの直接通信が成立していません（回線の相性の可能性があります）。Wi-Fi とモバイル回線を切り替えて、もう一度試してください。'
+      : 'サーバーに接続できていません。通信環境を確認してください。')+'</div>'+
+    '<p class="hint" style="margin:0 0 4px">診断: '+(ui.connStage||'-')+ice+'</p>'+
+    '<button class="btn" data-act="cancel">戻る</button></div>';
+}
+function startConnWatch(){
+  ui.connSlow=false; ui.connStage='broker';
+  clearTimeout(connT); connT=setTimeout(()=>{ if(ui.screen==='connecting' && role==='guest'){ ui.connSlow=true; render(); } },15000);
+}
 function joinRoom(c){
   role='guest'; code=c; everConnected=false;
-  ui.screen='connecting'; render();
+  startConnWatch(); ui.screen='connecting'; render();
   peer=new Peer();
-  peer.on('open',connectHost);
+  peer.on('open',()=>{ ui.connStage='host'; if(ui.screen==='connecting') render(); connectHost(); });
   peer.on('disconnected',()=>{ if(peer && !peer.destroyed) peer.reconnect(); });
   peer.on('error',e=>{
     if(e.type==='peer-unavailable'){
       if(everConnected) scheduleRetry();
       else goHome('ルーム「'+code+'」が見つかりません。コードを確認してください。');
-    }else if(!everConnected){ goHome('サーバーに接続できませんでした。通信環境を確認してください。'); }
+    }else if(!everConnected){ goHome('サーバーに接続できませんでした。通信環境を確認してください。（'+e.type+'）'); }
   });
 }
 function scheduleRetry(){
@@ -495,7 +510,7 @@ function connectHost(){
   conn.on('open',()=>{ conn.send({t:'join',pid:myPid,name:myName}); });
   conn.on('data',m=>{
     if(m.t==='state'){
-      everConnected=true; ui.reconnecting=false; ui.screen='game'; view=m.s;
+      everConnected=true; clearTimeout(connT); ui.reconnecting=false; ui.screen='game'; view=m.s;
       store.set(sessionStorage,'uno-guest',code);
       history.replaceState(null,'','?room='+code);
       if(view.turn!==view.you) ui.picking=null;
@@ -505,7 +520,7 @@ function connectHost(){
   conn.on('close',()=>{ if(hostConn===conn && role==='guest') scheduleRetry(); });
 }
 function goHome(msg){
-  clearTimeout(retryT); clearTimeout(autoT); Object.values(bubTs).forEach(clearTimeout);
+  clearTimeout(retryT); clearTimeout(connT); clearTimeout(autoT); Object.values(bubTs).forEach(clearTimeout);
   role=null; view=null; G=null; conns.clear(); seenView=false; lastSig=null;
   if(peer){ try{ peer.destroy(); }catch{} peer=null; }
   store.del(sessionStorage,'uno-host'); store.del(sessionStorage,'uno-guest');
@@ -778,7 +793,7 @@ function setFavicon(dot){
 }
 function render(){
   if(ui.screen==='home') renderHome();
-  else if(ui.screen==='connecting' || !view) app.innerHTML='<div class="panel"><p class="hint" style="margin:0">接続中…</p></div>';
+  else if(ui.screen==='connecting' || !view) app.innerHTML=connectingHTML();
   else if(view.phase==='lobby') renderLobby();
   else{
     const fx=view.fx, fresh = fx && fx.seq!==lastFx, first=!seenView;
@@ -834,6 +849,7 @@ app.addEventListener('click',e=>{
     (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(()=>toast('招待リンクをコピーしました'),()=>prompt('このリンクを友達に送ってください',url));
   }
   else if(a==='leave'){ if(view.phase!=='playing' || confirm('ゲームから退出しますか？')){ history.replaceState(null,'',location.pathname); goHome(); } }
+  else if(a==='cancel'){ history.replaceState(null,'',location.pathname); goHome(); }
   else if(a==='start') act({type:'start'});
   else if(a==='rule') act({type:'rule',key:el.dataset.k,val:el.checked});
   else if(a==='draw'){ ui.sel=[]; act({type:'draw'}); }
