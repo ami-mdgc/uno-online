@@ -335,7 +335,7 @@ function handleAction(pid,a){
       setFx(pid,cardName(last)+(k>1?' ×'+k:'')+(stuck?'　記号だけ残って+2':''),'play',k,{cards:cards.map(c=>({c:c.c,v:c.v})),col:G.color});
       if(!p.hand.length){ G.phase='ended'; G.winner=pid; p.wins++; addLog('🎉 '+p.name+' の勝ち！'); break; }
       let steps=1;
-      if(first.v==='skip'){ steps=n===2?2:1+k; addLog(k>1 ? k+'人分スキップ' : G.players[nextIdx(1)].name+' はスキップ'); }
+      if(first.v==='skip'){ steps=1+Math.min(k,n-1); addLog(k>1 ? k+'人分スキップ' : G.players[nextIdx(1)].name+' はスキップ'); }
       else if(first.v==='rev'){ if(n>2 && k%2) G.dir*=-1; }
       else if(first.v==='d2'||first.v==='d4'){
         const amt=k*(first.v==='d2'?2:4);
