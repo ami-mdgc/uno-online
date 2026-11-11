@@ -113,7 +113,12 @@ input:focus{border-color:var(--text)}
 .hand .card.new{outline:2.5px solid var(--text);outline-offset:3px}
 .hand .card.sel{transform:translateY(-26px);outline:2.5px solid var(--text);outline-offset:3px;z-index:4}
 .emotes{display:flex;justify-content:center;gap:6px;margin-top:6px}
-.emotes button{background:var(--soft);border-radius:999px;width:40px;height:32px;font-size:17px}
+.emotes button{background:var(--soft);border-radius:999px;width:40px;height:32px;font-size:17px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.balloon{position:absolute;line-height:1;transform:translate(-50%,-100%);transform-origin:50% 100%;will-change:transform,font-size;filter:drop-shadow(0 6px 12px rgba(0,0,0,.18));text-align:center;white-space:nowrap}
+.balloon.remote{transform:translate(-50%,-50%);transform-origin:50% 50%}
+.balloon small{display:block;width:max-content;margin:6px auto 0;font-size:11px;font-weight:700;background:var(--text);color:#fff;border-radius:999px;padding:2px 8px}
+.shard{position:absolute;line-height:1;will-change:transform,opacity}
+.popring{position:absolute;border-radius:50%;border:3px solid var(--text);transform:translate(-50%,-50%)}
 
 /* ---------- card ---------- */
 .card{position:relative;width:var(--cw);height:var(--ch);border-radius:13px;padding:0;color:#fff;overflow:hidden;display:block;font-weight:900;font-style:italic;box-shadow:-2px 0 0 var(--bg)}
@@ -392,7 +397,7 @@ function handleAction(pid,a){
     }
     case 'emote':
       if(!EMOTES.includes(a.e)) return;
-      setFx(pid,a.e,'emote'); break;
+      { const pop=Math.max(0,Math.min(1,+a.pop||0)); setFx(pid,a.e,'emote',0,pop?{pop}:null); } break;
   }
   if(a.type==='play' || a.type==='draw' || a.type==='pass' || a.type==='color') autoPenalty();
 }
@@ -741,6 +746,81 @@ function floatEmote(fx){
   ],{duration:2600+Math.random()*1300,easing:'ease-out'});
   a.onfinish=a.oncancel=()=>el.remove();
 }
+// long-press a reaction: it inflates like a balloon while held, then bursts into small copies for everyone
+const POP_MS=2600;
+const popSize = p => 44+p*Math.min(220,innerWidth*.5);
+let hold=null, holdGuard=false;
+function burst(e,x,y,p){
+  const st=$('#stage'); if(!st||!st.animate) return;
+  const S=popSize(p), ring=document.createElement('div'); ring.className='popring';
+  ring.style.left=x+'px'; ring.style.top=y+'px'; st.appendChild(ring);
+  const ra=ring.animate([{width:S*.6+'px',height:S*.6+'px',opacity:.9},{width:S*2.2+'px',height:S*2.2+'px',opacity:0}],{duration:380,easing:'ease-out'});
+  ra.onfinish=ra.oncancel=()=>ring.remove();
+  if(st.querySelectorAll('.shard').length>160) return;
+  const n=Math.round(8+p*18), R=70+p*Math.min(260,innerWidth*.45);
+  for(let i=0;i<n;i++){
+    const s=document.createElement('span'); s.className='shard'; s.textContent=e;
+    s.style.left=x+'px'; s.style.top=y+'px'; s.style.fontSize=(14+Math.random()*18)+'px';
+    st.appendChild(s);
+    const ang=(i/n)*Math.PI*2+Math.random()*.5, d=R*(.45+Math.random()*.75), dx=Math.cos(ang)*d, dy=Math.sin(ang)*d, rot=(Math.random()*2-1)*540;
+    const a=s.animate([
+      {transform:'translate(-50%,-50%) scale(.4)',opacity:1},
+      {transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(1.15) rotate(${rot*.6}deg)`,opacity:1,offset:.45},
+      {transform:`translate(calc(-50% + ${dx*1.15}px),calc(-50% + ${dy+90+Math.random()*80}px)) scale(.9) rotate(${rot}deg)`,opacity:0}
+    ],{duration:900+Math.random()*500,easing:'cubic-bezier(.1,.8,.3,1)'});
+    a.onfinish=a.oncancel=()=>s.remove();
+  }
+  if(navigator.vibrate){ try{ navigator.vibrate(25); }catch{} }
+}
+// someone else's balloon: blow it up quickly to the size they reached, then burst it
+function remotePop(fx){
+  const st=$('#stage'); if(!st||!st.animate) return;
+  const p=fx.pop, x=innerWidth*(.25+Math.random()*.5), y=innerHeight*(.28+Math.random()*.25);
+  const el=document.createElement('div'); el.className='balloon remote';
+  el.style.left=x+'px'; el.style.top=y+'px'; el.style.fontSize=popSize(p)+'px';
+  el.innerHTML=`<span>${esc(fx.text)}</span><small>${esc(nameOf(fx.pid))}</small>`;
+  st.appendChild(el);
+  const T='translate(-50%,-50%) ';
+  const a=el.animate([{transform:T+'scale(.12)'},{transform:T+'scale(.6) rotate(-5deg)',offset:.5},{transform:T+'scale(.88) rotate(5deg)',offset:.8},{transform:T+'scale(1.08)'}],{duration:450+p*700,easing:'ease-in'});
+  let done=false;
+  a.onfinish=a.oncancel=()=>{ if(done) return; done=true; el.remove(); burst(fx.text,x,y,p); };
+}
+function startHold(){
+  const st=$('#stage'), h=hold; if(!h||!st||!st.animate) return;
+  const el=document.createElement('div'); el.className='balloon'; el.textContent=h.e;
+  el.style.left=h.x+'px'; el.style.top=h.y+'px';
+  st.appendChild(el);
+  h.el=el; h.t0=performance.now(); holdGuard=true;
+  const tick=now=>{
+    if(hold!==h) return;
+    const p=Math.min(1,(now-h.t0)/POP_MS); h.p=p;
+    el.style.fontSize=popSize(p)+'px';
+    el.style.transform=`translate(-50%,-100%) rotate(${Math.sin(now/28)*p*7}deg)`;
+    if(p>=1) endHold(true); else h.raf=requestAnimationFrame(tick);
+  };
+  h.raf=requestAnimationFrame(tick);
+}
+function endHold(fire){
+  const h=hold; hold=null; if(!h) return;
+  clearTimeout(h.timer); cancelAnimationFrame(h.raf);
+  if(!h.el) return;   // released before the long-press began: the ordinary click sends a normal reaction
+  const r=h.el.getBoundingClientRect(); h.el.remove();
+  if(!fire || !view) return;
+  const p=Math.max(.15,h.p||0);
+  burst(h.e, r.left+r.width/2, r.top+r.height/2, p);
+  act({type:'emote',e:h.e,pop:Math.round(p*100)/100});
+}
+app.addEventListener('pointerdown',e=>{
+  const btn=e.target.closest('[data-act="emote"]'); if(!btn||hold) return;
+  const r=btn.getBoundingClientRect();
+  hold={e:btn.dataset.e,el:null,p:0,x:r.left+r.width/2,y:r.top-6};
+  hold.timer=setTimeout(startHold,320);
+});
+const releaseHold=fire=>{ endHold(fire); setTimeout(()=>{ holdGuard=false; },400); };
+addEventListener('pointerup',()=>releaseHold(true));
+addEventListener('pointercancel',()=>releaseHold(false));
+addEventListener('blur',()=>releaseHold(false));
+app.addEventListener('contextmenu',e=>{ if(e.target.closest('[data-act="emote"]')) e.preventDefault(); });
 // played cards shown big in the middle; several cards fan out so you can see how many were played
 function bigPlay(fx){
   const st=$('#stage'); if(!st||!st.animate||!fx.cards||!fx.cards.length) return;
@@ -786,7 +866,7 @@ function bigBanner(html){
   a.onfinish=a.oncancel=()=>el.remove();
 }
 function playFx(fx){
-  if(fx.kind==='emote') floatEmote(fx);
+  if(fx.kind==='emote'){ if(!fx.pop) floatEmote(fx); else if(fx.pid!==view.you) remotePop(fx); }
   else if(fx.kind==='play') bigPlay(fx);
   else if(fx.kind==='say' && fx.text==='UNO！') bigUno(fx);
   else if(fx.kind==='forgot') bigForgot(fx);
@@ -875,7 +955,7 @@ app.addEventListener('click',e=>{
   else if(a==='rule') act({type:'rule',key:el.dataset.k,val:el.checked});
   else if(a==='draw'){ ui.sel=[]; act({type:'draw'}); }
   else if(a==='pass') act({type:'pass'});
-  else if(a==='emote') act({type:'emote',e:el.dataset.e});
+  else if(a==='emote'){ if(holdGuard){ holdGuard=false; return; } act({type:'emote',e:el.dataset.e}); }
   else if(a==='uno') act({type:'uno'});
   else if(a==='catch') act({type:'catch',target:el.dataset.pid});
   else if(a==='card'){
