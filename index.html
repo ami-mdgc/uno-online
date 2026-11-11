@@ -775,7 +775,7 @@ function burst(e,x,y,p){
 // someone else's balloon: blow it up quickly to the size they reached, then burst it
 function remotePop(fx){
   const st=$('#stage'); if(!st||!st.animate) return;
-  const p=fx.pop, x=innerWidth*(.25+Math.random()*.5), y=innerHeight*(.28+Math.random()*.25);
+  const p=fx.pop, x=innerWidth*(.5+(Math.random()-.5)*.16), y=innerHeight*(.44+(Math.random()-.5)*.1);
   const el=document.createElement('div'); el.className='balloon remote';
   el.style.left=x+'px'; el.style.top=y+'px'; el.style.fontSize=popSize(p)+'px';
   el.innerHTML=`<span>${esc(fx.text)}</span><small>${esc(nameOf(fx.pid))}</small>`;
@@ -787,15 +787,15 @@ function remotePop(fx){
 }
 function startHold(){
   const st=$('#stage'), h=hold; if(!h||!st||!st.animate) return;
-  const el=document.createElement('div'); el.className='balloon'; el.textContent=h.e;
-  el.style.left=h.x+'px'; el.style.top=h.y+'px';
+  const el=document.createElement('div'); el.className='balloon remote'; el.textContent=h.e;
+  el.style.left=innerWidth/2+'px'; el.style.top=innerHeight*.44+'px';
   st.appendChild(el);
   h.el=el; h.t0=performance.now(); holdGuard=true;
   const tick=now=>{
     if(hold!==h) return;
     const p=Math.min(1,(now-h.t0)/POP_MS); h.p=p;
     el.style.fontSize=popSize(p)+'px';
-    el.style.transform=`translate(-50%,-100%) rotate(${Math.sin(now/28)*p*7}deg)`;
+    el.style.transform=`translate(-50%,-50%) rotate(${Math.sin(now/28)*p*7}deg)`;
     if(p>=1) endHold(true); else h.raf=requestAnimationFrame(tick);
   };
   h.raf=requestAnimationFrame(tick);
