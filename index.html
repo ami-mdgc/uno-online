@@ -755,6 +755,27 @@ function playFx(fx){
   else if(fx.kind==='say' && fx.text==='UNO！') bigUno(fx);
   else if(fx.kind==='forgot') bigForgot(fx);
 }
+// tab icon: a red UNO card, with a blue dot on it while it's the player's turn
+const favs = {};
+function setFavicon(dot){
+  const key = dot?'dot':'plain';
+  if(!favs[key]){
+    try{
+      const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d');
+      x.fillStyle='#e5484d'; x.beginPath(); x.roundRect(8,2,48,60,9); x.fill();
+      x.fillStyle='#fff'; x.beginPath(); x.ellipse(32,32,17,24,.42,0,7); x.fill();
+      x.fillStyle='#e5484d'; x.font='italic 900 30px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText('U',32,34);
+      if(dot){
+        x.fillStyle='#fff'; x.beginPath(); x.arc(47,17,15,0,7); x.fill();
+        x.fillStyle='#2f7de1'; x.beginPath(); x.arc(47,17,11,0,7); x.fill();
+      }
+      favs[key]=c.toDataURL('image/png');
+    }catch{ return; }
+  }
+  let l=document.querySelector('link[rel="icon"]');
+  if(!l){ l=document.createElement('link'); l.rel='icon'; document.head.appendChild(l); }
+  if(l.href!==favs[key]) l.href=favs[key];
+}
 function render(){
   if(ui.screen==='home') renderHome();
   else if(ui.screen==='connecting' || !view) app.innerHTML='<div class="panel"><p class="hint" style="margin:0">接続中…</p></div>';
@@ -781,7 +802,8 @@ function render(){
   const mine = !!view && view.phase==='playing' && view.turn===view.you;
   if(mine && !wasMine && navigator.vibrate){ try{ navigator.vibrate(80); }catch{} }
   wasMine=mine;
-  document.title = mine ? '▶ あなたの番！ - UNO' : 'オンラインUNO';
+  document.title = mine ? '🔵 あなたの番！ - UNO' : 'オンラインUNO';
+  setFavicon(mine);
 }
 addEventListener('resize',layoutHand);
 
