@@ -778,8 +778,8 @@ function setFavicon(dot){
     try{
       const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d');
       x.fillStyle='#e5484d'; x.beginPath(); x.roundRect(8,2,48,60,9); x.fill();
-      x.fillStyle='#fff'; x.beginPath(); x.ellipse(32,32,17,24,.42,0,7); x.fill();
-      x.fillStyle='#e5484d'; x.font='italic 900 30px sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText('U',32,34);
+      x.fillStyle='#fff'; x.beginPath(); x.ellipse(32,32,20,25,0,0,7); x.fill();
+      x.fillStyle='#e5484d'; x.font='900 36px sans-serif'; x.textAlign='center'; x.textBaseline='alphabetic'; x.fillText('U',32,32+Math.round(36*.72/2));
       if(dot){
         x.fillStyle='#fff'; x.beginPath(); x.arc(47,17,15,0,7); x.fill();
         x.fillStyle='#2f7de1'; x.beginPath(); x.arc(47,17,11,0,7); x.fill();
