@@ -747,7 +747,7 @@ function floatEmote(fx){
   a.onfinish=a.oncancel=()=>el.remove();
 }
 // long-press a reaction: it inflates like a balloon while held, then bursts into small copies for everyone
-const POP_MS=2600;
+const POP_MS=1700;
 const popSize = p => 44+p*Math.min(220,innerWidth*.5);
 let hold=null, holdGuard=false;
 function burst(e,x,y,p){
@@ -781,7 +781,7 @@ function remotePop(fx){
   el.innerHTML=`<span>${esc(fx.text)}</span><small>${esc(nameOf(fx.pid))}</small>`;
   st.appendChild(el);
   const T='translate(-50%,-50%) ';
-  const a=el.animate([{transform:T+'scale(.12)'},{transform:T+'scale(.6) rotate(-5deg)',offset:.5},{transform:T+'scale(.88) rotate(5deg)',offset:.8},{transform:T+'scale(1.08)'}],{duration:450+p*700,easing:'ease-in'});
+  const a=el.animate([{transform:T+'scale(.12)'},{transform:T+'scale(.6) rotate(-5deg)',offset:.5},{transform:T+'scale(.88) rotate(5deg)',offset:.8},{transform:T+'scale(1.08)'}],{duration:350+p*450,easing:'ease-in'});
   let done=false;
   a.onfinish=a.oncancel=()=>{ if(done) return; done=true; el.remove(); burst(fx.text,x,y,p); };
 }
@@ -814,7 +814,7 @@ app.addEventListener('pointerdown',e=>{
   const btn=e.target.closest('[data-act="emote"]'); if(!btn||hold) return;
   const r=btn.getBoundingClientRect();
   hold={e:btn.dataset.e,el:null,p:0,x:r.left+r.width/2,y:r.top-6};
-  hold.timer=setTimeout(startHold,320);
+  hold.timer=setTimeout(startHold,250);
 });
 const releaseHold=fire=>{ endHold(fire); setTimeout(()=>{ holdGuard=false; },400); };
 addEventListener('pointerup',()=>releaseHold(true));
