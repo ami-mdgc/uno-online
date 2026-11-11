@@ -129,6 +129,11 @@ input:focus{border-color:var(--accent)}
 
 /* ---------- overlays ---------- */
 .modal{position:fixed;inset:0;background:rgba(5,10,22,.72);display:grid;place-items:center;z-index:50;padding:16px;overflow:auto}
+.modal.sheet{background:rgba(5,10,22,.15);pointer-events:none}
+.modal.sheet .box{pointer-events:auto;padding:16px 20px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.modal.sheet .pick{grid-template-columns:repeat(4,1fr);gap:8px}
+.modal.sheet .pick button{height:52px;font-size:16px}
+.modal.sheet h2{font-size:16px;margin-bottom:12px}
 .modal .box{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;width:min(380px,100%);text-align:center}
 .modal h2{margin:0 0 16px;font-size:20px}
 .pick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -282,7 +287,7 @@ function startRound(){
   let i=G.deck.length-1; while(!isNum(G.deck[i])) i--;
   const first=G.deck.splice(i,1)[0];
   G.discard.push(first); G.color=first.c;
-  G.turn=rand(G.players.length); G.dir=1; G.drawn=null; G.pending=0; G.winner=null; G.phase='playing';
+  G.turn=rand(G.players.length); G.dir=1; G.drawn=null; G.pending=0; G.winner=null; G.choosing=null; G.phase='playing';
   G.log=[]; addLog('ゲーム開始！ '+G.players[G.turn].name+' から');
 }
 // UNO forgotten: the 2nd time onward gets the 忘れん坊 treatment
@@ -294,7 +299,7 @@ function forgetFx(t,skipped){
 // nobody called it out: when the turn comes back to a player still on 1 card without UNO, they auto-draw 2 and lose the turn
 function autoPenalty(){
   for(let i=0;i<G.players.length;i++){
-    if(G.phase!=='playing' || G.drawn!=null) return;
+    if(G.phase!=='playing' || G.drawn!=null || G.choosing) return;
     const t=G.players[G.turn];
     if(t.hand.length!==1 || t.calledUno) return;
     drawCards(t,G.pending>0 ? G.pending+2 : 2); G.pending=0;
@@ -305,6 +310,7 @@ function autoPenalty(){
 }
 function handleAction(pid,a){
   const p=G.players.find(x=>x.pid===pid); if(!p||!a) return;
+  if(G.choosing && (a.type==='play'||a.type==='draw'||a.type==='pass')) return;
   const n=G.players.length;
   const cur=G.phase==='playing' ? G.players[G.turn] : null;
   switch(a.type){
@@ -322,17 +328,17 @@ function handleAction(pid,a){
       const first=cards[0], last=cards[cards.length-1], k=cards.length;
       if(k>1 && (!G.rules.multi || cards.some(c=>c.v!==first.v))) return;
       if(!playable(first,{top:G.discard[G.discard.length-1],color:G.color,drawn:G.drawn,pending:G.pending,rules:G.rules})) return;
-      if(first.c==='w' && !COLORS.includes(a.color)) return;
+      if(first.c==='w' && first.v!=='sh' && !COLORS.includes(a.color)) return;
       if(G.rules.noSymbolEnd && k===p.hand.length && !isNum(first)) return;
       if(k===p.hand.length && p.hand.length<=2 && !p.calledUno){ setFx(pid,'UNOを言ってから！','say'); return; }
       p.hand=p.hand.filter(c=>!ids.includes(c.id)); G.discard.push(...cards);
-      G.color = last.c==='w' ? a.color : last.c; G.drawn=null;
+      G.color = last.c==='w' ? (last.v==='sh' ? G.color : a.color) : last.c; G.drawn=null;
       if(p.hand.length!==1) p.calledUno=false;
-      addLog(p.name+' が '+cardName(last)+' を'+(k>1?k+'枚':'')+'出した'+(last.c==='w' ? '（'+COLOR_NAME[G.color]+'を指定）' : ''));
+      addLog(p.name+' が '+cardName(last)+' を'+(k>1?k+'枚':'')+'出した'+(last.c==='w' && last.v!=='sh' ? '（'+COLOR_NAME[G.color]+'を指定）' : ''));
       // with "no going out on a symbol card", being left with only a symbol card is a dead end: draw 2 automatically
       const stuck = G.rules.noSymbolEnd && p.hand.length===1 && !isNum(p.hand[0]);
       if(stuck){ drawCards(p,2); addLog('🃏 '+p.name+' は記号カードだけ残ったので2枚引いた'); }
-      setFx(pid,cardName(last)+(k>1?' ×'+k:'')+(stuck?'　記号だけ残って+2':''),'play',k,{cards:cards.map(c=>({c:c.c,v:c.v})),col:G.color});
+      setFx(pid,cardName(last)+(k>1?' ×'+k:'')+(stuck?'　記号だけ残って+2':''),'play',k,{cards:cards.map(c=>({c:c.c,v:c.v})),col:last.v==='sh'?null:G.color});
       if(!p.hand.length){ G.phase='ended'; G.winner=pid; p.wins++; addLog('🎉 '+p.name+' の勝ち！'); break; }
       let steps=1;
       if(first.v==='skip'){ steps=2*k; addLog(k>1 ? k+'人分スキップ' : G.players[nextIdx(1)].name+' はスキップ'); }
@@ -342,10 +348,15 @@ function handleAction(pid,a){
         if(G.rules.stack){ G.pending+=amt; addLog('ドロー合計 +'+G.pending+' → '+G.players[nextIdx(1)].name); }
         else{ const t=G.players[nextIdx(1)]; drawCards(t,amt); steps=2; addLog(t.name+' は'+amt+'枚引いてスキップ'); }
       }
-      else if(first.v==='sh'){ shuffleHands(); addLog('🔀 全員の手札を集めて配り直した'); }
+      else if(first.v==='sh'){ shuffleHands(); G.choosing=pid; addLog('🔀 全員の手札を集めて配り直した → '+p.name+' が色を選ぶ'); break; }
       G.turn=nextIdx(steps);
       break;
     }
+    case 'color':
+      if(G.choosing!==pid || !COLORS.includes(a.color)) return;
+      G.choosing=null; G.color=a.color; G.turn=nextIdx(1);
+      addLog(p.name+' が '+COLOR_NAME[a.color]+' を指定'); setFx(pid,COLOR_NAME[a.color]+'を指定','say');
+      break;
     case 'draw': {
       if(cur!==p || G.drawn!=null) return;
       if(G.pending>0){
@@ -380,7 +391,7 @@ function handleAction(pid,a){
       if(!EMOTES.includes(a.e)) return;
       setFx(pid,a.e,'emote'); break;
   }
-  if(a.type==='play' || a.type==='draw' || a.type==='pass') autoPenalty();
+  if(a.type==='play' || a.type==='draw' || a.type==='pass' || a.type==='color') autoPenalty();
 }
 function viewFor(pid){
   const me=G.players.find(p=>p.pid===pid);
@@ -392,7 +403,7 @@ function viewFor(pid){
     players:G.players.map(p=>({pid:p.pid,name:p.name,count:p.hand.length,online:p.online,calledUno:p.calledUno,wins:p.wins})),
     hand, top:G.discard[G.discard.length-1]||null, color:G.color, turn:cur?cur.pid:null, dir:G.dir,
     drawn: cur && cur.pid===pid ? G.drawn : null, pending:G.pending||0,
-    deckCount:G.deck.length, winner:G.winner, log:G.log.slice(-4), fx:G.fx||null,
+    deckCount:G.deck.length, winner:G.winner, choosing:G.choosing||null, log:G.log.slice(-4), fx:G.fx||null,
   };
 }
 function broadcast(){
@@ -408,6 +419,7 @@ function broadcast(){
     autoT=setTimeout(()=>{
       if(G.phase!=='playing') return;
       const cur=G.players[G.turn]; if(cur.online) return;
+      if(G.choosing===cur.pid){ handleAction(cur.pid,{type:'color',color:COLORS[rand(4)]}); broadcast(); return; }
       handleAction(cur.pid,{type:'draw'});
       if(G.drawn!=null && G.players[G.turn]===cur) handleAction(cur.pid,{type:'pass'});
       broadcast();
@@ -582,7 +594,7 @@ function bubbleHTML(pid,mine){
 function renderTable(){
   const v=view, rules=v.rules||DEFAULT_RULES;
   const meIdx=v.players.findIndex(p=>p.pid===v.you), me=v.players[meIdx];
-  const myTurn=v.turn===v.you && v.phase==='playing';
+  const myTurn=v.turn===v.you && v.phase==='playing' && !v.choosing;
   const turnP=v.players.find(p=>p.pid===v.turn);
   if(!myTurn) ui.sel=[];
   ui.sel=ui.sel.filter(id=>v.hand.some(c=>c.id===id));
@@ -625,7 +637,9 @@ function renderTable(){
   const canUno = v.phase==='playing' && me && !me.calledUno && (v.hand.length===1 || (v.hand.length===2 && myTurn));
   const canDraw = myTurn && v.drawn==null;
   let turnText = turnP ? esc(turnP.name)+' の番' : '';
-  if(myTurn){
+  if(v.choosing){
+    turnText = v.choosing===v.you ? '配り直し完了！色を選んでください' : esc(nameOf(v.choosing))+' が色を選んでいます…';
+  }else if(myTurn){
     if(v.pending>0) turnText = `+${v.pending} が来た！ ${rules.stack?'ドローカードで返すか、':''}山札から${v.pending}枚引く`;
     else if(selCard) turnText = '同じカードをタップで追加できます';
     else if(v.drawn!=null) turnText = '引いたカードを出す？';
@@ -659,6 +673,10 @@ function renderTable(){
       <div class="emotes">${EMOTES.map(e=>`<button data-act="emote" data-e="${e}">${e}</button>`).join('')}</div>
     </div>
   </div>`;
+  if(v.choosing===v.you && v.phase==='playing'){
+    app.insertAdjacentHTML('beforeend',`<div class="modal sheet"><div class="box"><h2>配り直し完了！色を選んでください</h2><div class="pick">${
+      COLORS.map(c=>`<button class="c-${c}" data-act="color2" data-c="${c}">${COLOR_NAME[c]}</button>`).join('')}</div></div></div>`);
+  }
   if(ui.picking!=null && myTurn){
     app.insertAdjacentHTML('beforeend',`<div class="modal" data-act="unpick"><div class="box"><h2>色を選んでください</h2><div class="pick">${
       COLORS.map(c=>`<button class="c-${c}" data-act="color" data-c="${c}">${COLOR_NAME[c]}</button>`).join('')}</div></div></div>`);
@@ -830,7 +848,7 @@ function readName(){
 }
 function submitPlay(ids){
   const c=view.hand.find(x=>x.id===ids[0]); if(!c) return;
-  if(c.c==='w'){ ui.picking=ids.slice(); render(); return; }
+  if(c.c==='w' && c.v!=='sh'){ ui.picking=ids.slice(); render(); return; }
   ui.sel=[]; act({type:'play',ids});
   if(role!=='host') render();
 }
@@ -873,6 +891,7 @@ app.addEventListener('click',e=>{
   else if(a==='playsel'){ if(ui.sel.length) submitPlay(ui.sel.slice()); }
   else if(a==='unsel'){ ui.sel=[]; render(); }
   else if(a==='color'){ const ids=ui.picking; ui.picking=null; ui.sel=[]; act({type:'play',ids,color:el.dataset.c}); if(role!=='host') render(); }
+  else if(a==='color2') act({type:'color',color:el.dataset.c});
   else if(a==='unpick'){ if(e.target===el){ ui.picking=null; render(); } }
 });
 app.addEventListener('keydown',e=>{
